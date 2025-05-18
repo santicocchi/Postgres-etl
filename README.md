@@ -1,4 +1,4 @@
-# **ETL para la carga de *`datasets`* de DENGUE en Argenti**
+# **ETL para la carga de *`datasets`* de DESEMBARQUE DE CAPTURAS MARITIMAS en Argentia**
 
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
@@ -10,7 +10,7 @@
 Los datasets utilizados en este proyecto pueden descargarse desde el portal oficial de datos abiertos del gobierno de Argentina:  
 [https://datos.gob.ar/dataset](https://datos.gob.ar/dataset)
 
-Este portal proporciona información pública en formatos reutilizables, incluyendo datos relacionados con casos de dengue en Argentina.
+Este portal proporciona información pública en formatos reutilizables, incluyendo datos relacionados con casos de desembarque de capturas maritimas en Argentina.
 
 ## **Resumen del Tutorial**
 
@@ -18,7 +18,7 @@ Este tutorial guía al usuario a través de los pasos necesarios para desplegar 
 
 1. Levantar los servicios con Docker.
 2. Configurar la conexión a la base de datos en Apache Superset.
-3. Ejecutar consultas SQL para analizar los datos de casos de dengue.
+3. Ejecutar consultas SQL para analizar los datos de casos de desembarque de capturas maritimas.
 4. Crear gráficos y tableros interactivos para la visualización de datos.
 
 ## **Palabras Clave**
@@ -32,7 +32,7 @@ Este tutorial guía al usuario a través de los pasos necesarios para desplegar 
 
 ## **Mantenido Por**
 
-**PINDU**
+**Grupo 7 Base de Datos**
 
 ## **Descargo de Responsabilidad**
 
@@ -41,9 +41,9 @@ El código proporcionado se ofrece "tal cual", sin garantía de ningún tipo, ex
 
 ## **Descripción del Proyecto**
 
-Este proyecto implementa un proceso ETL (Extract, Transform, Load) para la carga y análisis de datos relacionados con casos de dengue en Argentina. Utiliza herramientas modernas como Docker, PostgreSQL, Apache Superset y pgAdmin para facilitar la gestión, análisis y visualización de datos.
+Este proyecto implementa un proceso ETL (Extract, Transform, Load) para la carga y análisis de datos relacionados con desembarque de capturas maritimas en Argentina. Utiliza herramientas modernas como Docker, PostgreSQL, Apache Superset y pgAdmin para facilitar la gestión, análisis y visualización de datos.
 
-El objetivo principal es proporcionar una solución escalable y reproducible para analizar datos de dengue por grupo etario, departamento y provincia, permitiendo la creación de tableros interactivos y gráficos personalizados.
+El objetivo principal es proporcionar una solución escalable y reproducible para analizar datos de desembarque de capturas maritimas por grupo especie, departamento y provincia, permitiendo la creación de tableros interactivos y gráficos personalizados.
 
 ## **Características Principales**
 
@@ -143,30 +143,51 @@ Accede a Apache Superset y crea una conexión a la base de datos PostgreSQL en l
 
 ### **2. Consultas SQL**
 
-#### **Consulta 1: Casos por grupo etario, departamento y provincia**
-Esta consulta permite analizar los casos de dengue agrupados por grupo etario, departamento y provincia.
+#### **Consulta 1: Total de captura por provincia**
+Esta consulta permite analizar el total capturado por provincia.
 
 ```sql
-SELECT provincia.nombre AS provincia, 
-       departamento.nombre AS departamento, 
-       grupo_etario, 
-       cantidad
-FROM dengue 
-INNER JOIN departamento ON dengue.departamento_id = departamento.id
-INNER JOIN provincia ON departamento.provincia_id = provincia.id;
+SELECT
+  p.nombre AS provincia,
+  SUM(pe.captura) AS total_captura
+FROM public.pesca pe
+JOIN public.departamento d ON pe.departamento_id = d.id
+JOIN public.provincia p ON d.provincia_id = p.id
+GROUP BY p.nombre
+ORDER BY total_captura DESC;
 ```
 
-#### **Consulta 2: Casos por grupo etario con más de 20,000 casos**
-Esta consulta filtra los grupos etarios con más de 20,000 casos y ordena los resultados de mayor a menor.
+#### **Consulta 2: Top 3 de especies más capturadas por provincia y departamento**
+Esta consulta permite analizar el top 3 de especies más capturadas por provincia y departamento
+```sql
+SELECT
+  p.nombre AS provincia,
+  d.nombre AS departamento,
+  pe.especie,
+  SUM(pe.captura) AS total_captura
+FROM public.pesca pe
+JOIN public.departamento d ON pe.departamento_id = d.id
+JOIN public.provincia p ON d.provincia_id = p.id
+GROUP BY p.nombre, d.nombre, pe.especie
+ORDER BY total_captura DESC
+LIMIT 3;
+```
+#### **Consulta 3: Especie más capturada por provincia**
+Esta consulta perimite analizar la especie más capturada junto con la provincia.
 
 ```sql
-SELECT d.grupo_etario AS "Grupo Etario", 
-       SUM(d.cantidad) AS "Cantidad de Casos"
-FROM dengue AS d
-GROUP BY grupo_etario
-HAVING SUM(d.cantidad) > 20000
-ORDER BY "Cantidad de Casos" DESC;
+SELECT
+  p.nombre AS provincia,
+  pe.especie,
+  SUM(pe.captura) AS total_captura
+FROM public.pesca pe
+JOIN public.departamento d ON pe.departamento_id = d.id
+JOIN public.provincia p ON d.provincia_id = p.id
+GROUP BY p.nombre, pe.especie
+ORDER BY total_captura DESC
+LIMIT 1;
 ```
+
 
 ### **3. Creación de Gráficos y Tableros**
 
@@ -179,10 +200,11 @@ ORDER BY "Cantidad de Casos" DESC;
 
 ```
 postgres-etl/
-├── docker-compose.yml       # Configuración de Docker Compose
-├── init.sh                  # Script de inicialización
-├── data/                    # Carpeta para almacenar datasets
-├── sql/                     # Consultas SQL predefinidas
-└── README.md                # Documentación del proyecto
+├── docker-compose.yml        # Configuración de Docker Compose
+├── init.sh                   # Script de inicialización
+├── datos/                    # Carpeta para almacenar datasets
+├── scripts/                  # SQL 
+└── README.md                 # Documentación del proyecto
+└── .env                      # Variables de entorno
 ```
 
