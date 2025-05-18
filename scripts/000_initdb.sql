@@ -61,7 +61,7 @@ ADD CONSTRAINT fk_pesca_departamento FOREIGN KEY (departamento_id) REFERENCES de
 /*
 Tablas temporales para carga de datos
 */
-CREATE TABLE temp_departamentos (
+CREATE TEMPORARY TABLE temp_departamentos (
     categoria VARCHAR,
     centroide_lat FLOAT,
     centroide_lon FLOAT,
@@ -74,7 +74,7 @@ CREATE TABLE temp_departamentos (
     provincia_nombre VARCHAR
 );
 
-CREATE TABLE provincias_temp (
+CREATE TEMPORARY TABLE provincias_temp (
     categoria VARCHAR,
     centroide_lat FLOAT,
     centroide_lon FLOAT,
@@ -86,7 +86,7 @@ CREATE TABLE provincias_temp (
     nombre_completo VARCHAR
 );
 
-CREATE TABLE pesca_temp (
+CREATE TEMPORARY TABLE pesca_temp (
     fecha VARCHAR,
     flota VARCHAR,
     puerto VARCHAR,
